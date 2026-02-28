@@ -1,0 +1,9 @@
+{
+  "vendor" = "waynelloydsmith"
+  "module_build" = "6"
+  "minbuild" = "2026"
+  "vendor.url" = "http://your.url.here/"
+  "module_name" = "JConsole2026"
+  "module_desc" = "<html><body><title>JConsole2026</title><p>Jython Console.</p></body></html>"
+  "desc" = "JConsole with Logging added,use the window x to shutdown JConsole.Put your.py files in /opt/moneydance/scripts "
+}

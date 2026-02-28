@@ -1,0 +1,133 @@
+package com.moneydance.modules.features.JConsole2026.streams;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.File;
+import java.io.FileWriter;   // Import the FileWriter class
+
+import com.moneydance.modules.features.JConsole2026.JConsole2026;
+
+/**
+ * Data written into this is data from the console
+ * 
+ * @author Andrew
+ */
+public class ConsoleInputStream extends Reader
+{
+    public Boolean  debug = true ;
+    public FileWriter   	myWriter;
+
+	private JConsole2026		console;
+	private StringBuilder	stream;
+
+	/**
+	 * @param console
+	 */
+	public ConsoleInputStream(JConsole2026 console)  // the constructor .. this gets called by JConsole2026
+	{
+		this.console = console;
+		stream = new StringBuilder();
+        if (debug){ System.err.println("InputStream constructor");};
+        try {
+            String homeDir = System.getProperty("user.home");
+            String path = homeDir+"/.JConsole2026.log";
+            if (debug){ System.err.println(Thread.currentThread().getStackTrace()[1] +" logfile path is :" + path );};
+            FileWriter myWriter = new FileWriter(path ,true); // true for append
+            this.myWriter = myWriter;
+            }
+        catch (Exception e)
+            {
+            if (debug){ System.err.println("JConsole2026.log FileWrite open error occurred.");};
+            e.printStackTrace();
+            }
+	}
+
+	/**
+	 * @param text
+	 */
+	public void addText(String text)  // this is called once by JConsole2026 if the engine is running ???? seems to work even if
+	{                                 // the interpreter is using System.in instead of this ConsoleInputStream ????
+                System.err.println("InputStream addText");
+		synchronized (stream)
+		{
+			stream.append(text);
+		}
+	}
+
+	@Override
+	public synchronized void close() throws IOException // this is never called
+	{
+		System.err.println("InputStream close");
+		console = null;
+		stream = null;
+	}
+
+	@Override
+	public int read(char[] buf, int off, int len) throws IOException // this is never called
+	{
+		int count = 0;
+		boolean doneReading = false;
+                System.err.println("InputStream read");
+
+		for (int i = off; i < off + len && !doneReading; i++)
+		{
+			// determine if we have a character we can read
+			// we need the lock for stream
+			int length = 0;
+			while (length == 0)
+			{
+				// sleep this thread until there is something to read
+				try
+				{
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				synchronized (stream)
+				{
+					length = stream.length();
+				}
+			}
+			synchronized (stream)
+			{
+				// get the character
+				buf[i] = stream.charAt(0);
+				// delete it from the buffer
+				stream.deleteCharAt(0);
+				count++;
+				if (buf[i] == '\n')
+				{
+					doneReading = true;
+				}
+			}
+		}
+		return count;
+	}
+
+/**	you can't override below .. they are jython functions
+	@Override
+	public synchronized String readline() throws IOException
+	{
+		System.err.println("InputStream readline");
+		return ("hello");
+	}
+
+	@Override
+	public synchronized String readlines() throws IOException // returns a list ????
+	{
+		System.err.println("InputStream readlines");
+		return ("hello");
+	}
+
+	@Override
+	public synchronized int readinto(bytearray buff) throws IOException
+	{
+		System.err.println("InputStream readinto");
+		return (10);
+	}
+**/
+
+}
